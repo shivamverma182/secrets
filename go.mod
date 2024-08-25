@@ -3,6 +3,7 @@ module github.com/shivamverma182/gh-secrets
 go 1.23.0
 
 require (
+	github.com/google/go-github/v62 v62.0.0
 	github.com/google/go-github/v63 v63.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.8.1
