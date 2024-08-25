@@ -5,13 +5,12 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - '*'
 
 permissions:
   contents: write
-  
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
