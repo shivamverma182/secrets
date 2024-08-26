@@ -14,25 +14,32 @@ import (
 )
 
 var (
-	githubUrl   string
-	githubOwner string
-	githubRepo  string
-	secretName  string
-	secretValue string = "1234"
-	githubEnv   string
+	githubUrl          string
+	githubOwner        string
+	githubRepo         string
+	secretName         string
+	githubEnv          string
+	resourceGroup      string
+	vaultName          string
+	vaultSecretName    string
+	vaultSecretVersion string
+	encodeSecret       bool
 )
 
 // githubCmd represents the github command
 var GithubCmd = &cobra.Command{
 	Use:   "github",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "A command to create github secrets from azure keyvault secrets",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		secretValue, err := utils.GetKeyvaultSecret(resourceGroup, vaultName, vaultSecretName, vaultSecretVersion)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if encodeSecret {
+			secretValue = utils.Base64Encode([]byte(secretValue))
+			fmt.Println(secretValue)
+		}
 		if len(githubEnv) == 0 {
 			_, err := utils.SetRepoSecret(githubUrl, githubOwner, githubRepo, secretName, secretValue, os.Getenv("GITHUB_TOKEN"))
 			if err != nil {
@@ -50,10 +57,15 @@ to quickly create a Cobra application.`,
 
 func init() {
 	GithubCmd.PersistentFlags().StringVar(&githubUrl, "url", "", "github server url")
-	GithubCmd.PersistentFlags().StringVar(&githubOwner, "owner", "shivamverma182", "Github Repository Owner")
-	GithubCmd.PersistentFlags().StringVar(&githubRepo, "repository", "secrets", "Github Repository name")
-	GithubCmd.PersistentFlags().StringVar(&secretName, "secret-name", "api_key", "Github Secret Name")
+	GithubCmd.PersistentFlags().StringVar(&githubOwner, "owner", "", "Github Repository Owner")
+	GithubCmd.PersistentFlags().StringVar(&githubRepo, "repository", "", "Github Repository name")
+	GithubCmd.PersistentFlags().StringVar(&secretName, "secret-name", "", "Github Secret Name")
 	GithubCmd.PersistentFlags().StringVar(&githubEnv, "github-env", "", "Github Environment Name")
+	GithubCmd.PersistentFlags().StringVar(&resourceGroup, "resource-group", "", "Key Vault Resource Group Name")
+	GithubCmd.PersistentFlags().StringVar(&vaultName, "keyvault-name", "", "Key Vault Name")
+	GithubCmd.PersistentFlags().StringVar(&vaultSecretName, "keyvault-secret-name", "", "Key Vault Secret Name")
+	GithubCmd.PersistentFlags().StringVar(&vaultSecretVersion, "keyvault-secret-version", "", "Key Vault Secret Version")
+	GithubCmd.PersistentFlags().BoolVar(&encodeSecret, "encode-secret", false, "Encode Secret Value")
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
