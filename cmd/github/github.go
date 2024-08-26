@@ -38,7 +38,6 @@ var GithubCmd = &cobra.Command{
 		}
 		if encodeSecret {
 			secretValue = utils.Base64Encode([]byte(secretValue))
-			fmt.Println(secretValue)
 		}
 		if len(githubEnv) == 0 {
 			_, err := utils.SetRepoSecret(githubUrl, githubOwner, githubRepo, secretName, secretValue, os.Getenv("GITHUB_TOKEN"))
