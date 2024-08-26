@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"net/url"
 
-	"github.com/google/go-github/v62/github"
+	"github.com/google/go-github/v63/github"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -63,30 +63,35 @@ func getEnvPublicKeyDetails(token, url, env string, repoId int) (keyId, keyData 
 	return key.GetKeyID(), key.GetKey(), nil
 }
 
-func SetSecret(github_url, owner, repo, secret, env, token string) (int, error) {
+func SetRepoSecret(github_url, owner, repo, secretName, secretValue, token string) (int, error) {
 
 	client, err := getClient(token, github_url)
 	if err != nil {
 		return 0, err
 	}
-	if env == "" {
-		keyId, keyData, err := getRepoPublicKeyDetails(owner, repo, token, github_url)
-		if err != nil {
-			return 0, err
-		}
-		encryptedValue, err := encryptSecret(keyData, secret)
-		if err != nil {
-			return 0, err
-		}
-		resp, err := client.Actions.CreateOrUpdateRepoSecret(context.TODO(), owner, repo, &github.EncryptedSecret{
-			Name:           secret,
-			KeyID:          keyId,
-			EncryptedValue: encryptedValue,
-		})
-		if err != nil {
-			return 0, err
-		}
-		return resp.StatusCode, nil
+	keyId, keyData, err := getRepoPublicKeyDetails(owner, repo, token, github_url)
+	if err != nil {
+		return 0, err
+	}
+	encryptedValue, err := encryptSecret(keyData, secretValue)
+	if err != nil {
+		return 0, err
+	}
+	resp, err := client.Actions.CreateOrUpdateRepoSecret(context.TODO(), owner, repo, &github.EncryptedSecret{
+		Name:           secretName,
+		KeyID:          keyId,
+		EncryptedValue: encryptedValue,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return resp.StatusCode, nil
+}
+
+func SetEnvSecret(github_url, owner, repo, secretName, secretValue, env, token string) (int, error) {
+	client, err := getClient(token, github_url)
+	if err != nil {
+		return 0, err
 	}
 	escapedEnv := url.PathEscape(env)
 	repo_o, _, err := client.Repositories.Get(context.TODO(), owner, repo)
@@ -94,9 +99,15 @@ func SetSecret(github_url, owner, repo, secret, env, token string) (int, error) 
 		return 0, err
 	}
 	keyId, keyData, err := getEnvPublicKeyDetails(token, github_url, env, int(repo_o.GetID()))
-	encryptedValue, err := encryptSecret(keyData, secret)
+	if err != nil {
+		return 0, err
+	}
+	encryptedValue, err := encryptSecret(keyData, secretValue)
+	if err != nil {
+		return 0, err
+	}
 	resp, err := client.Actions.CreateOrUpdateEnvSecret(context.TODO(), int(repo_o.GetID()), escapedEnv, &github.EncryptedSecret{
-		Name:           secret,
+		Name:           secretName,
 		KeyID:          keyId,
 		EncryptedValue: encryptedValue,
 	})

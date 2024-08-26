@@ -8,20 +8,18 @@ import (
 	"log"
 	"os"
 
-	"github.com/google/go-github/v63/github"
 	"github.com/joho/godotenv"
 	"github.com/shivamverma182/gh-secrets/utils"
 	"github.com/spf13/cobra"
 )
 
 var (
-	githubUrl     string
-	githubOwner   string
-	githubRepo    string
-	secretName    string
-	secretValue   string = "1234"
-	githubEnv     string
-	actionService github.ActionsService
+	githubUrl   string
+	githubOwner string
+	githubRepo  string
+	secretName  string
+	secretValue string = "1234"
+	githubEnv   string
 )
 
 // githubCmd represents the github command
@@ -35,9 +33,16 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := utils.SetSecret(githubUrl, githubOwner, githubRepo, secretName, githubEnv, os.Getenv("GITHUB_TOKEN"))
-		if err != nil {
-			log.Fatal(err)
+		if len(githubEnv) == 0 {
+			_, err := utils.SetRepoSecret(githubUrl, githubOwner, githubRepo, secretName, secretValue, os.Getenv("GITHUB_TOKEN"))
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			_, err := utils.SetEnvSecret(githubUrl, githubOwner, githubRepo, secretName, secretValue, githubEnv, os.Getenv("GITHUB_TOKEN"))
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		fmt.Printf("Secret %s has been created.\n", secretName)
 	},

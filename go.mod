@@ -3,7 +3,6 @@ module github.com/shivamverma182/gh-secrets
 go 1.23.0
 
 require (
-	github.com/google/go-github/v62 v62.0.0
 	github.com/google/go-github/v63 v63.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.8.1
@@ -12,6 +11,7 @@ require (
 )
 
 require (
+	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
